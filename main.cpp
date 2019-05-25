@@ -74,6 +74,30 @@ Auxiliar function for quickSort thatplaces the pivot element at
 its correct position in sorted array, and places all the smaller
 to the left and greaters to the right
 */
+void iterativeQuickSort(vector<int> &vec, int low, int high){
+	int i = low;
+	int j = high;
+	int pivot = vec[low + (high - low) / 2];
+	while (i <= j){
+		while (vec[i] < pivot){
+			i++;
+		}
+		while (vec[j] > pivot){
+			j--;
+		}
+		if (i <= j){
+			swap(vec[i],vec[j]);
+			i++;
+			j--;
+		}
+	}
+	if (low < j){
+		iterativeQuickSort(vec, low, j);
+	}
+	if (i < high){
+		iterativeQuickSort(vec, i, high);
+	}
+}
 
 int partition(vector<int> &vec, int low, int high){
     int pivot;
@@ -91,14 +115,27 @@ int partition(vector<int> &vec, int low, int high){
     swap(vec[i+1], vec[high]);
     return i + 1;
 }
+// 4,8,1,6,3,7,2,5
 
+int partitionTest(vector<int> &vec, int low, int high){
+	int i = low -1;
+	int j;
+	for (j = low; j <=high; j++){
+		if (vec[j] < pivot){
+			i++;
+			swap(vec[i], vec[j]);
+		}	
+	}	
+	swap(vec[i+1],vec[high]);
+	return i;
+}
 
 /*
 Main function that implements quickSort
 */
 void quickSort(vector<int> &vec, int low, int high){
     if (low < high){
-        // pi is partitioning index, vec[p] is at right place
+        // pi is partitioning index, vec[p]] is at right place
         int pi = partition(vec, low, high);
         // Calls quicksort for both halves
         quickSort(vec, low, pi - 1);
