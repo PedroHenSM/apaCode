@@ -41,6 +41,15 @@ void swapValues(vector<int> &vec, double shufflePercentage){ // shufflePercentag
     cout << endl;
 }
 
+int kthSmallestProfit(vector<int> vec, int low, int high, int k){
+    /// Modifies vector, so parameter is passed by copy, not by reference
+    // nth_element(0, 0 + k - 1, vec.size());
+    vector<int>::iterator l = vec.begin() + low;
+    vector<int>::iterator h = vec.begin() + high;
+    nth_element(l, l + k - 1, h);
+    // th_element(vec.begin(), vec.begin() + k - 1, vec.end());
+    return vec[k-1];
+}
 
 int setPivotForRecursive(vector<int> &vec, int low, int high, int c){
     /// Finds pivot and put it on the last position of vector
@@ -58,7 +67,7 @@ int setPivotForRecursive(vector<int> &vec, int low, int high, int c){
             cout << "precisa implementar" << endl;
             exit(9);
             break;
-        case(4):  // pivot is a random number of partition
+        case(4):  // Raul's algorithm
             cout << "Algoritmo do Raul, precisa implementar" << endl;
             exit(9);
             break;
@@ -90,18 +99,26 @@ int setPivotForIteractive(vector<int> &vec, int low, int high, int c){
     int pivot;
     switch (c){
         case(1):  // pivot is the median of array
-            cout << "precisa implementar" << endl;
-            exit(9);
+            // cout << "STARTING" << endl;
+            // printVector(vec);
+            // cout << "low: " << low << " high: " << high << endl;
+            // pivot = kthSmallestProfit(vec, low, high, round(high - low + 1) / 2.)));
+            // (low + high + 1 / 2.) gives me the middle element
+            pivot = kthSmallestProfit(vec, low, high, round((low + high + 1) / 2.));
+            // pivot = vec[low];
+            // cout << "Pivot: " << pivot << endl;
+            // printVector(vec);
+            // cout << pivot << endl;
+            // exit(9);
             break;
         case(2):  // pivot is a random element
-            pivot = vec[low + rand() % (high - low)];
+            pivot = vec[low + rand() % (high - low + 1)];
             break;
-        case(3):  // pivot is a man of 3 values
+        case(3):  // pivot is a mean of 3 values
+            pivot = (vec[low] + vec[(low + high) / 2] + vec[high]) / 3;
+            break;
+        case(4):  // Raul's algorithm
             cout << "precisa implementar" << endl;
-            exit(9);
-            break;
-        case(4):  // pivot is a random number of partition
-            pivot = vec[low + rand() % (high - low)];
             break;
         case(5):  // pivot is the median of three, middle, first and last elements of partition
             int middle;
@@ -334,13 +351,6 @@ int partitionMed(int arr[], int l, int r, int x)
     return i;
 }
 
-
-int kthSmallestProfit(vector<int> vec, int k){
-    /// Modifies vector, so parameter is passed by copy, not by reference
-    nth_element(vec.begin(), vec.begin() + k - 1, vec.end());
-    return vec[k-1];
-}
-
 int main(int argc, char* argv[])
 {
     /**
@@ -353,8 +363,8 @@ int main(int argc, char* argv[])
     **/
     int c;
     int seed = 1;
-    int pivotingMethod = 1; // pivoting method
-    int nSize = 9; // vector size
+    int pivotingMethod = 4; // pivoting method
+    int nSize = 10; // vector size
     float shufflePercentage = 1; // porcentage of vector that will be shuffled [0,1]
     while ((c = getopt(argc, argv, "s:m:n:p:")) != -1) {
         cout << "Reading Parameters" << endl;
@@ -367,22 +377,27 @@ int main(int argc, char* argv[])
     	}
     }
     srand(seed);
-    vector<int> vec;// = {1,2,3,4,5,5,6,7,8,9};
+    vector<int> vec;/// = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+
     int arr[] = {22, 99, 32, 88, 34, 33, 11, 97, 55};// {4,8,1,6,3,7,2,5};
     fillVector(vec, nSize);
     swapValues(vec, shufflePercentage);
-    // vec = {22, 99, 32, 88, 34, 33, 11, 97, 55, 66}; /// 11, 22, 32, 33, 34, 55, 88, 97, 99
     printVector(vec);
+    //vec = {22, 99, 32, 88, 34, 33, 11, 97, 55, 66}; /// 11, 22, 32, 33, 34, 55, 88, 97, 99
+
     /*
-    int kth = selection(arr, 0, N - 1, int(N/2)); // not sure if complexity is O(n) at worst case
-    cout << "kth: " << kth << endl;
-    kth = kthSmallest(arr, 0, N-1, round(N/2.));
-    cout << "kth: " << kth << endl;
-    cout << round(vec.size()/2.) << endl;
-    */
-    int kth = kthSmallestProfit(vec, round(vec.size() / 2.)); /// O(n) at worst case
-    cout << "kth: " << kth << endl;
+    sort(vec.begin(), vec.end());
     printVector(vec);
+    int l = 0;
+    int h = vec.size() - 1;
+    /// v.begin() + v.size() / 2
+    int k = round((l + h + 1) / 2.);
+    cout << "k " << k << endl;
+    int kth = kthSmallestProfit(vec, l, h, k); /// O(n) at worst case
+    cout << "kth: " << kth << endl;
+    exit(8);
+    */
+
     // Calculate the time taken by quickSort
     auto start = high_resolution_clock::now();
     // quickSort(vec, 0, vec.size() -1, pivotingMethod);
