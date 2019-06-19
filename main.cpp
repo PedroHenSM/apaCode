@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <chrono>
+#include <unistd.h>
 
 using namespace std;
 using namespace std::chrono;
@@ -23,29 +24,40 @@ void fillVector(vector<int> &vec, size_t vecSize){
 
 void swapValues(vector<int> &vec, double shufflePercentage){ // shufflePercentage between [0,1]
     int nSwaps = 0;
-    int totalSwaps = shufflePercentage * vec.size();
+    int totalSwaps = int(shufflePercentage * vec.size());
     // cout << totalSwaps << endl;
     while (nSwaps < totalSwaps){
         int idx1 = rand() % vec.size();
         int idx2 = rand() % vec.size();
         swap(vec[idx1], vec[idx2]);
         // cout << idx1 << " " << idx2 << endl;
-        nSwaps++;
+        nSwaps = nSwaps + 1;
     }
     cout << endl;
 }
 
 
-void setPivot(vector<int> &vec, int &pivot, int low, int high, int c){
+int setPivotForRecursive(vector<int> &vec, int low, int high, int c){
+    /// Finds pivot and put it on the last position of vector
+    int pivot;
     switch (c){
-        case(1):  // pivot is the last element of partition
+        case(1):  // pivot is the median of array
+            cout << "precisa implementar" << endl;
+            exit(9);
+            break;
+        case(2):  // pivot is a random element
+            swap(vec[low + rand() % (high - low)], vec[high]);
             pivot = vec[high];
             break;
-        case(2):  // pivot is the first element of partition
-            swap(vec[low],vec[high]);
-            pivot = vec[high];
+        case(3):  // pivot is a man of 3 values
+            cout << "precisa implementar" << endl;
+            exit(9);
             break;
-        case(3):  // pivot is the median of three, middle and last elements of partition
+        case(4):  // pivot is a random number of partition
+            cout << "Algoritmo do Raul, precisa implementar" << endl;
+            exit(9);
+            break;
+        case(5):  // pivot is the median of three, middle , first and last elements of partition
             int middle;
             middle = (high + low) / 2;
             if(vec[middle] < vec[low]){
@@ -59,25 +71,63 @@ void setPivot(vector<int> &vec, int &pivot, int low, int high, int c){
             }
             pivot = vec[high];
             break;
-        case(4):  // pivot is a random number of partition
-            swap(vec[low + rand() % (high - low)], vec[high]);
+        case(6):  // pivot is the last element
             pivot = vec[high];
             break;
         default:
             cout << "Pivoting method not found, exiting.\n" << endl;
             exit(1);
     }
+    return pivot;
 }
 
-/*
-Auxiliar function for quickSort thatplaces the pivot element at
-its correct position in sorted array, and places all the smaller
-to the left and greaters to the right
-*/
-void iterativeQuickSort(vector<int> &vec, int low, int high){
+int setPivotForIteractive(vector<int> &vec, int low, int high, int c){
+    int pivot;
+    switch (c){
+        case(1):  // pivot is the median of array
+            cout << "precisa implementar" << endl;
+            exit(9);
+            break;
+        case(2):  // pivot is a random element
+            pivot = vec[low + rand() % (high - low)];
+            break;
+        case(3):  // pivot is a man of 3 values
+            cout << "precisa implementar" << endl;
+            exit(9);
+            break;
+        case(4):  // pivot is a random number of partition
+            pivot = vec[low + rand() % (high - low)];
+            break;
+        case(5):  // pivot is the median of three, middle, first and last elements of partition
+            int middle;
+            middle = (high + low) / 2;
+            if(vec[middle] < vec[low]){
+                swap(vec[low], vec[middle]);
+            }
+            if(vec[high] < vec[low]){
+                swap(vec[low], vec[high]);
+            }
+            if(vec[middle], vec[high]){
+                swap(vec[middle], vec[high]);
+            }
+            pivot = vec[high];
+            break;
+        case(6):  // pivot is the last element
+            pivot = vec[high];
+            break;
+        default:
+            cout << "Pivoting method not found, exiting.\n" << endl;
+            exit(1);
+    }
+    return pivot;
+}
+
+void iterativeQuickSort(vector<int> &vec, int low, int high, int pivotingMethod){
+    /// Pivot could be anywhere in vector
 	int i = low;
 	int j = high;
-	int pivot = vec[low + (high - low) / 2];
+	// int pivot = vec[low + (high - low) / 2];
+	int pivot = setPivotForIteractive(vec, low, high, pivotingMethod);
 	while (i <= j){
 		while (vec[i] < pivot){
 			i++;
@@ -92,16 +142,61 @@ void iterativeQuickSort(vector<int> &vec, int low, int high){
 		}
 	}
 	if (low < j){
-		iterativeQuickSort(vec, low, j);
+		iterativeQuickSort(vec, low, j, pivotingMethod);
 	}
 	if (i < high){
-		iterativeQuickSort(vec, i, high);
+		iterativeQuickSort(vec, i, high, pivotingMethod);
 	}
 }
 
-int partition(vector<int> &vec, int low, int high){
-    int pivot;
-    setPivot(vec, pivot, low, high, 3);
+void achaPivo(vector<int> &vec, int n1, int n2, int &pto){
+    int pos = n1+1;
+    pto = 0;
+    while(1){
+        if (pos > n2){
+            break;
+        }
+        else if (vec[pos] >= vec[pos-1]){
+            pos = pos + 1;
+        }
+        else{
+            pto = pos;
+            break;
+        }
+    }
+}
+
+void particionaRaulzito(vector<int> &vec, int low, int high, int pivot){
+	int i = low;
+	int j = high;
+	// int pivot = vec[low + (high - low) / 2];
+	while (i > j){
+        swap(vec[i], vec[j]);
+		while (vec[i] < vec[pivot]){
+			i++;
+		}
+		while (vec[j] > vec[pivot]){
+			j--;
+		}
+	}
+    // return pivot;
+}
+
+void quickRaulzito(vector<int> &vec, int n1, int n2){
+    int p;
+    // setPivot(vec, n1, n2, 1);
+    int pto = n2;
+    achaPivo(vec, n1, n2, pto);
+    if (pto != 0){
+        particionaRaulzito(vec, n1,n2, pto);
+        quickRaulzito(vec,n1, pto);
+        quickRaulzito(vec,pto+1, n2);
+    }
+}
+
+int partition(vector<int> &vec, int low, int high, int pivotingMethod){
+    /// Pivot must be in the last position of vector
+    int pivot = setPivotForRecursive(vec, low, high, pivotingMethod);
     int i = (low - 1);  // index of smaller element of actual partition
 
     for (int j = low; j <= high - 1; j++){
@@ -116,45 +211,53 @@ int partition(vector<int> &vec, int low, int high){
     return i + 1;
 }
 // 4,8,1,6,3,7,2,5
-
-int partitionTest(vector<int> &vec, int low, int high){
-	int i = low -1;
-	int j;
-	for (j = low; j <=high; j++){
-		if (vec[j] < pivot){
-			i++;
-			swap(vec[i], vec[j]);
-		}	
-	}	
-	swap(vec[i+1],vec[high]);
-	return i;
-}
-
-/*
-Main function that implements quickSort
-*/
-void quickSort(vector<int> &vec, int low, int high){
+/// Main function that implements quickSort
+void quickSort(vector<int> &vec, int low, int high, int pivotingMethod){
+    /// Pivot must be in the last position of vector
     if (low < high){
         // pi is partitioning index, vec[p]] is at right place
-        int pi = partition(vec, low, high);
+        int pi = partition(vec, low, high, pivotingMethod);
         // Calls quicksort for both halves
-        quickSort(vec, low, pi - 1);
-        quickSort(vec, pi + 1, high);
+        quickSort(vec, low, pi - 1, pivotingMethod);
+        quickSort(vec, pi + 1, high, pivotingMethod);
     }
 }
 
-
-int main()
+int main(int argc, char* argv[])
 {
-    srand(1);
+    /**
+    PivotingMethod = 1 -> median of list
+                     2 -> random value
+                     3 -> arithmetic mean of three (first, middle and last elements)
+                     4 -> custom algorithm by Raul (drop down?!)
+                     5 -> *optional* median of three (first, middle and last elements)
+                     6 -> *optional* last element
+    **/
+    int c;
+    int seed = 1;
+    int pivotingMethod = 1; // pivoting method
+    int nSize = 10; // vector size
+    float shufflePercentage = 0.1; // porcentage of vector that will be shuffled [0,1]
+    while ((c = getopt(argc, argv, "s:m:n:p:")) != -1) {
+        cout << "Reading Parameters" << endl;
+    	switch (c) {
+    		case 's': seed = atoi(optarg); break;
+    		case 'm': pivotingMethod = atoi(optarg); break;
+    		case 'n': nSize = atoi(optarg); break;
+    		case 'p': shufflePercentage = atof(optarg); break;
+			default: abort();
+    	}
+    }
+    srand(seed);
     vector<int> vec;// = {1,2,3,4,5,5,6,7,8,9};
-    int vecSize = 10;
-    fillVector(vec, vecSize);
-    swapValues(vec, 1);
+    fillVector(vec, nSize);
+    swapValues(vec, shufflePercentage);
     printVector(vec);
     // Calculate the time taken by quickSort
     auto start = high_resolution_clock::now();
-    quickSort(vec, 0, vec.size()-1);
+    // quickSort(vec, 0, vec.size() -1, pivotingMethod);
+    iterativeQuickSort(vec, 0, vec.size()-1, pivotingMethod);
+    // quickRaulzito(vec, 0, vec.size()-1);
     auto stop = high_resolution_clock::now();
     auto timeTaken = duration_cast<microseconds>(stop-start);
     cout << "Time taken by quickSort: " << timeTaken.count() << "microseconds" << endl;
