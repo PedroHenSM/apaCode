@@ -3,6 +3,11 @@
 #include <algorithm>
 #include <chrono>
 #include <unistd.h>
+#include <math.h>
+
+#include<climits> // just for tests
+
+#define N 10 // just for tests
 
 using namespace std;
 using namespace std::chrono;
@@ -223,6 +228,119 @@ void quickSort(vector<int> &vec, int low, int high, int pivotingMethod){
     }
 }
 
+int selection (int *a, int ini, int fim, int k){
+    int pivotIndex, pivotValue,auxIndex;
+    int i;
+    pivotIndex = (ini+fim)/2;  //não-randômico
+    pivotValue = a[pivotIndex];
+    swap(a[pivotIndex], a[fim]);
+    auxIndex = ini;
+    for(i = ini; i< fim; i++){
+        if(a[i] < pivotValue){
+            swap(a[auxIndex], a[i]);
+            auxIndex = auxIndex+1;
+        }
+    }
+    swap(a[auxIndex], a[fim]);
+    if(k == auxIndex)
+        return a[k];
+    else if (k < auxIndex )
+        return selection(a, ini, auxIndex-1,k);
+    else
+        return selection(a,auxIndex+1, fim, k);
+}
+
+int partitionMed(int arr[], int l, int r, int k);
+
+int findMedian(int arr[], int n)
+{
+    sort(arr, arr+n);  // Sort the array
+    return arr[n/2];   // Return middle element
+}
+
+// Returns k'th smallest element in arr[l..r] in worst case
+// linear time. ASSUMPTION: ALL ELEMENTS IN ARR[] ARE DISTINCT
+int kthSmallest(int arr[], int l, int r, int k)
+{
+    // If k is smaller than number of elements in array
+    if (k > 0 && k <= r - l + 1)
+    {
+        int n = r-l+1; // Number of elements in arr[l..r]
+
+        // Divide arr[] in groups of size 5, calculate median
+        // of every group and store it in median[] array.
+        int i, median[(n+4)/5]; // There will be floor((n+4)/5) groups;
+        for (i=0; i<n/5; i++)
+            median[i] = findMedian(arr+l+i*5, 5);
+        if (i*5 < n) //For last group with less than 5 elements
+        {
+            median[i] = findMedian(arr+l+i*5, n%5);
+            i++;
+        }
+
+        // Find median of all medians using recursive call.
+        // If median[] has only one element, then no need
+        // of recursive call
+        int medOfMed = (i == 1)? median[i-1]:
+                                 kthSmallest(median, 0, i-1, i/2);
+
+        // Partition the array around a random element and
+        // get position of pivot element in sorted array
+        int pos = partitionMed(arr, l, r, medOfMed);
+
+        // If position is same as k
+        if (pos-l == k-1)
+            return arr[pos];
+        if (pos-l > k-1)  // If position is more, recur for left
+            return kthSmallest(arr, l, pos-1, k);
+
+        // Else recur for right subarray
+        return kthSmallest(arr, pos+1, r, k-pos+l-1);
+    }
+
+    // If k is more than number of elements in array
+    return INT_MAX;
+}
+
+void swapMed(int *a, int *b)
+{
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// It searches for x in arr[l..r], and partitions the array
+// around x.
+int partitionMed(int arr[], int l, int r, int x)
+{
+    // Search for x in arr[l..r] and move it to end
+    int i;
+    for (i=l; i<r; i++)
+        if (arr[i] == x)
+           break;
+    swapMed(&arr[i], &arr[r]);
+
+    // Standard partition algorithm
+    i = l;
+    for (int j = l; j <= r - 1; j++)
+    {
+        if (arr[j] <= x)
+        {
+            swapMed(&arr[i], &arr[j]);
+            i++;
+        }
+    }
+    swapMed(&arr[i], &arr[r]);
+    return i;
+}
+
+
+int kthSmallestProfit(vector<int> vec, int k){
+    /// Modifies vector, so parameter is passed by copy, not by reference
+    nth_element(vec.begin(), vec.begin() + k - 1, vec.end());
+    return vec[k-1];
+}
+
 int main(int argc, char* argv[])
 {
     /**
@@ -236,8 +354,8 @@ int main(int argc, char* argv[])
     int c;
     int seed = 1;
     int pivotingMethod = 1; // pivoting method
-    int nSize = 10; // vector size
-    float shufflePercentage = 0.1; // porcentage of vector that will be shuffled [0,1]
+    int nSize = 9; // vector size
+    float shufflePercentage = 1; // porcentage of vector that will be shuffled [0,1]
     while ((c = getopt(argc, argv, "s:m:n:p:")) != -1) {
         cout << "Reading Parameters" << endl;
     	switch (c) {
@@ -250,8 +368,20 @@ int main(int argc, char* argv[])
     }
     srand(seed);
     vector<int> vec;// = {1,2,3,4,5,5,6,7,8,9};
+    int arr[] = {22, 99, 32, 88, 34, 33, 11, 97, 55};// {4,8,1,6,3,7,2,5};
     fillVector(vec, nSize);
     swapValues(vec, shufflePercentage);
+    // vec = {22, 99, 32, 88, 34, 33, 11, 97, 55, 66}; /// 11, 22, 32, 33, 34, 55, 88, 97, 99
+    printVector(vec);
+    /*
+    int kth = selection(arr, 0, N - 1, int(N/2)); // not sure if complexity is O(n) at worst case
+    cout << "kth: " << kth << endl;
+    kth = kthSmallest(arr, 0, N-1, round(N/2.));
+    cout << "kth: " << kth << endl;
+    cout << round(vec.size()/2.) << endl;
+    */
+    int kth = kthSmallestProfit(vec, round(vec.size() / 2.)); /// O(n) at worst case
+    cout << "kth: " << kth << endl;
     printVector(vec);
     // Calculate the time taken by quickSort
     auto start = high_resolution_clock::now();
