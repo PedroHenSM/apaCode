@@ -6,11 +6,11 @@
 #include <math.h>
 #include <fstream>
 #include <string.h>
-#include <iomanip>
+#include <iomanip> // for stringstream
+#include <time.h>
 
-#include<climits> // just for tests
 
-#define N 10 // just for tests
+
 
 using namespace std;
 using namespace std::chrono;
@@ -20,6 +20,17 @@ void printVector(vector<int> &vec){
         cout << i << " ";
     }
     cout << endl;
+}
+
+void checkShuffle(vector<int> &vec){
+    int shuffled = 0;
+    int i = 0;
+    while ( i < vec.size()){
+        if (vec[i] != ++i){
+            shuffled = shuffled + 1;
+        }
+    }
+    cout << "There is " << shuffled << " out of " << vec.size() << " or " << shuffled/float(vec.size()) * 100 << "% shuffled" << endl;
 }
 
 void fillVector(vector<int> &vec, size_t vecSize){
@@ -149,14 +160,16 @@ void runTests(vector<int> &vec, int seed, int pivotingMethod, int nSize, float s
         file << "Median\t" << "Random\t" << "Mean\t" << "Drop Down\n";
     }
 
-    printVector(vec);
+    // printVector(vec);
 
     // Calculate the time taken by quickSort
     auto start = high_resolution_clock::now();
     iterativeQuickSort(vec, 0, vec.size()-1, pivotingMethod);
     auto stop = high_resolution_clock::now();
-    auto timeTaken = duration_cast<microseconds>(stop-start);
-    cout << "Time taken by quickSort: " << timeTaken.count() << " microseconds" << endl;
+    auto timeTaken = duration_cast<nanoseconds>(stop-start);
+    auto elapsedTime = duration_cast<microseconds>(stop-start);
+    cout << "Time taken by quickSort: " << timeTaken.count() << " nanoseconds" << endl;
+    cout << "Time taken by quickSort: " << elapsedTime.count() << " microseconds" << endl;
     file << timeTaken.count();
     if (pivotingMethod < 4){
         file <<"\t";
@@ -165,19 +178,21 @@ void runTests(vector<int> &vec, int seed, int pivotingMethod, int nSize, float s
         file << "\n";
     }
     file.close();
-    printVector(vec);
+    // printVector(vec);
 }
 
 void runTerm(vector<int> &vec, int seed, int pivotingMethod, int nSize, float shufflePercentage){
-    printVector(vec);
+    //printVector(vec);
 
     // Calculate the time taken by quickSort
     auto start = high_resolution_clock::now();
     iterativeQuickSort(vec, 0, vec.size()-1, pivotingMethod);
     auto stop = high_resolution_clock::now();
-    auto timeTaken = duration_cast<microseconds>(stop-start);
-    cout << "Time taken by quickSort: " << timeTaken.count() << " microseconds" << endl;
-    printVector(vec);
+    auto timeTaken = duration_cast<nanoseconds>(stop-start);
+    auto elapsedTime = duration_cast<microseconds>(stop-start);
+    cout << "Time taken by quickSort: " << timeTaken.count() << " nanoseconds" << endl;
+    cout << "Time taken by quickSort: " << elapsedTime.count() << " microseconds" << endl;
+    //printVector(vec);
 }
 
 int main(int argc, char* argv[])
@@ -192,9 +207,14 @@ int main(int argc, char* argv[])
     **/
     int c;
     int seed = 1;
-    int pivotingMethod = 4; // pivoting method
-    int nSize = 10; // vector size
-    float shufflePercentage = 0.1; // percentage of vector that will be shuffled [0,1]
+    int pivotingMethod = 1; // pivoting method
+    int nSize = 10000000; // vector size
+    float shufflePercentage = 1.1; // percentage of vector that will be shuffled [0,1]
+    /*
+        shufflePercentage = 0.05 -> approx 8-10% of vector will be shuffled
+        shufflePercentage = 0.35 -> approx 49-51% of vector will be shuffled
+        shufflePercentage = 1.1 -> approx 88-90% of vector will be shuffled
+    */
     while ((c = getopt(argc, argv, "s:m:n:p:")) != -1) {
         // cout << "Reading Parameters" << endl;
     	switch (c) {
@@ -209,9 +229,13 @@ int main(int argc, char* argv[])
     vector<int> vec;
     fillVector(vec, nSize);
     swapValues(vec, shufflePercentage);
+    checkShuffle(vec);
     // Running tests on terminal
     // runTerm(vec, seed, pivotingMethod, nSize, shufflePercentage);
     // Running tests on files
     runTests(vec, seed, pivotingMethod, nSize, shufflePercentage);
+    if(is_sorted(vec.begin(), vec.end())){
+        cout << "Sorted" << endl;
+    }
     return 0;
 }
