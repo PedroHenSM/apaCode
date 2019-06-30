@@ -8,6 +8,7 @@
 #include <string.h>
 #include <iomanip> // for stringstream
 #include <time.h>
+#include <climits>
 
 
 
@@ -52,6 +53,68 @@ void swapValues(vector<int> &vec, double shufflePercentage){ // shufflePercentag
     cout << endl;
 }
 
+/* In case someone wants to pass in the pivValue, I broke partition into 2 pieces.
+ */
+int pivot(vector<int>& vec, int pivot, int start, int end){
+
+    /* Now we need to go into the array with a starting left and right value. */
+    int left = start, right = end-1;
+    while(left < right){
+        /* Increase the left and the right values until inappropriate value comes */
+        while(vec.at(left) < pivot && left <= right) left++;
+        while(vec.at(right) > pivot && right >= left) right--;
+
+        /* In case of duplicate values, we must take care of this special case. */
+        if(left >= right) break;
+        else if(vec.at(left) == vec.at(right)){ left++; continue; }
+
+        /* Do the normal swapping */
+        int temp = vec.at(left);
+        vec.at(left) = vec.at(right);
+        vec.at(right) = temp;
+    }
+    return right;
+}
+
+/* Returns the k-th element of this array. */
+int MoM(vector<int> vec, int k, int start, int end){
+    /* Start by base case: Sort if less than 10 size
+     * E.x.: Size = 9, 9 - 0 = 9.
+     */
+    if(end-start < 10){
+        sort(vec.begin()+start, vec.begin()+end);
+        return vec.at(k);
+    }
+
+    vector<int> medians;
+    /* Now sort every consecutive 5 */
+    for(int i = start; i < end; i+=5){
+        if(end - i < 10){
+            sort(vec.begin()+i, vec.begin()+end);
+            medians.push_back(vec.at((i+end)/2));
+        }
+        else{
+            sort(vec.begin()+i, vec.begin()+i+5);
+            medians.push_back(vec.at(i+2));
+        }
+    }
+
+    int median = MoM(medians, medians.size()/2, 0, medians.size());
+
+    /* use the median to pivot around */
+    int piv = pivot(vec, median, start, end);
+    int length = piv - start+1;
+
+    if(k < length){
+        return MoM(vec, k, start, piv);
+    }
+    else if(k > length){
+        return MoM(vec, k-length, piv+1, end);
+    }
+    else
+        return vec[k];
+}
+
 int kthSmallestProfit(vector<int> vec, int low, int high, int k){
     // Modifies vector, parameter must be passed by copy, not by reference
     vector<int>::iterator l = vec.begin() + low;
@@ -60,6 +123,8 @@ int kthSmallestProfit(vector<int> vec, int low, int high, int k){
     // th_element(vec.begin(), vec.begin() + k - 1, vec.end());
     return vec[k-1];
 }
+
+
 
 int setPivotForIteractive(vector<int> &vec, int low, int high, int c){
     int pivot = -1;
@@ -70,6 +135,10 @@ int setPivotForIteractive(vector<int> &vec, int low, int high, int c){
             // cout << "low: " << low << " high: " << high << endl;
             // pivot = kthSmallestProfit(vec, low, high, round(high - low + 1) / 2.)));
             // (low + high + 1 / 2.) gives me the middle element
+            //int k = (6+0) /2.;
+            //int kth = MoM(v, k, 0, v.size());
+            pivot = MoM(vec, (high + low) / 2., low, high);
+            //
             pivot = kthSmallestProfit(vec, low, high, round((low + high + 1) / 2.));
             // pivot = vec[low];
             // cout << "Pivot: " << pivot << endl;
@@ -206,10 +275,10 @@ int main(int argc, char* argv[])
                      6 -> *optional* last element
     **/
     int c;
-    int seed = 1;
+    int seed = 14;
     int pivotingMethod = 1; // pivoting method
-    int nSize = 10000000; // vector size
-    float shufflePercentage = 1.1; // percentage of vector that will be shuffled [0,1]
+    int nSize = 1000000; // vector size
+    float shufflePercentage = 0.35; // percentage of vector that will be shuffled [0,1]
     /*
         shufflePercentage = 0.05 -> approx 8-10% of vector will be shuffled
         shufflePercentage = 0.35 -> approx 49-51% of vector will be shuffled
@@ -231,9 +300,17 @@ int main(int argc, char* argv[])
     swapValues(vec, shufflePercentage);
     checkShuffle(vec);
     // Running tests on terminal
-    // runTerm(vec, seed, pivotingMethod, nSize, shufflePercentage);
+    runTerm(vec, seed, pivotingMethod, nSize, shufflePercentage);
     // Running tests on files
-    runTests(vec, seed, pivotingMethod, nSize, shufflePercentage);
+    // runTests(vec, seed, pivotingMethod, nSize, shufflePercentage);
+    //vector<int> v = {12, 3, 5, 7, 4, 19, 26}; // 3 4 5 7 12 19 26 | 27 28
+    //int k = (6+0) /2.;
+    //int kth = MoM(v, k, 0, v.size());
+    // int kth1 = kthSmallest(v, 0, 6, 3);
+    //cout << kth << endl;
+    //printVector(v);
+    // cout << "K'th smallest element is " << kthSmallest(arr, 0, n-1, k);
+
     if(is_sorted(vec.begin(), vec.end())){
         cout << "Sorted" << endl;
     }
