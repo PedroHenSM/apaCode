@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 from scipy import stats
-#import scikit_posthocs as sp
-#import matplotlib.pyplot as plt
+import scikit_posthocs as sp
+import matplotlib.pyplot as plt
 import os
 
 folder = 'data_results/'
@@ -17,6 +17,7 @@ if not os.path.exists('stats_analysis/resume/'):
         os.makedirs('stats_analysis/resume/')
         
 for c_ids in range(len(ids)):
+    print(ids[c_ids])
     T = pd.read_csv(folder+ids[c_ids], sep='\t')
     H = T.columns.values
     T = np.array(T).T
@@ -28,7 +29,6 @@ for c_ids in range(len(ids)):
 
 
 ## P_VALUE
-'''
 if not os.path.exists('stats_analysis/p_value/'):
         os.makedirs('stats_analysis/p_value/')
 
@@ -39,16 +39,16 @@ for c_ids in range(len(ids)):
     T = np.array(T).T
     dunn_test = sp.posthoc_dunn(T)
     kruskal_values.append(stats.kruskal(*T)[1])
-    for i in range(len(H)):
-        dunn_test[i][i] = 1
+    #for i in range(len(H)):
+        #dunn_test[i][i] = 1
     dunn_test = pd.DataFrame(dunn_test, index=H)
     dunn_test.to_csv('stats_analysis/p_value/dunn_test_'+ids[c_ids], sep='\t', header=H, float_format='%.6f')
     
 kruskal_values = pd.DataFrame(np.array(kruskal_values).T, index=ids)
 kruskal_values.to_csv('stats_analysis/p_value/kruskal.txt', sep='\t', header=['p_value'], float_format='%.6f')
-'''
+
+
 ## BOXPLOT
-'''
 if not os.path.exists('stats_analysis/boxplot/'):
         os.makedirs('stats_analysis/boxplot/')
 
@@ -83,7 +83,7 @@ for c_ids in range(len(ids)):
     plt.savefig('stats_analysis/boxplot/boxplot_'+ids[c_ids][:-4]+'.eps', format='eps', dpi=500, transparent = True)
     #plt.savefig('stats_analysis/boxplot/boxplot_'+ids[c_ids][:-4]+'.jpg', format='jpg', dpi=500)
     plt.close('all')
-'''
+
 ## PERFORMANCE_PROFILE
 if len(ids) > 1:
     if not os.path.exists('stats_analysis/performance_profile/'):
